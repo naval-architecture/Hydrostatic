@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ReferencePoints, DraftParams, CalculateResponse, UploadResponse } from "./types";
+import type { DraftParams, CalculateResponse, UploadResponse } from "./types";
 
 interface HydrostaticsState {
   // Hull upload state
@@ -9,7 +9,6 @@ interface HydrostaticsState {
   uploadError: string | null;
 
   // Input parameters
-  referencePoints: ReferencePoints;
   draftParams: DraftParams;
   waterDensity: number;
 
@@ -24,7 +23,6 @@ interface HydrostaticsState {
   setUploading: (v: boolean) => void;
   setUploadError: (e: string | null) => void;
 
-  setReferencePoints: (rp: Partial<ReferencePoints>) => void;
   setDraftParams: (dp: Partial<DraftParams>) => void;
   setWaterDensity: (d: number) => void;
 
@@ -34,13 +32,6 @@ interface HydrostaticsState {
 
   reset: () => void;
 }
-
-const initialReferencePoints: ReferencePoints = {
-  baseline_z: 0,
-  ap_x: 0,
-  fp_x: 0,
-  midship_x: 0,
-};
 
 const initialDraftParams: DraftParams = {
   initial_draft: 0.5,
@@ -55,7 +46,6 @@ export const useHydrostaticsStore = create<HydrostaticsState>((set) => ({
   isUploading: false,
   uploadError: null,
 
-  referencePoints: initialReferencePoints,
   draftParams: initialDraftParams,
   waterDensity: 1.025,
 
@@ -68,8 +58,6 @@ export const useHydrostaticsStore = create<HydrostaticsState>((set) => ({
   setUploading: (v) => set({ isUploading: v }),
   setUploadError: (e) => set({ uploadError: e }),
 
-  setReferencePoints: (rp) =>
-    set((state) => ({ referencePoints: { ...state.referencePoints, ...rp } })),
   setDraftParams: (dp) =>
     set((state) => ({ draftParams: { ...state.draftParams, ...dp } })),
   setWaterDensity: (d) => set({ waterDensity: d }),

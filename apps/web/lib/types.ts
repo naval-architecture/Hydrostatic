@@ -18,13 +18,6 @@ export interface UploadResponse {
   warnings: string[];
 }
 
-export interface ReferencePoints {
-  baseline_z: number;
-  ap_x: number;
-  fp_x: number;
-  midship_x: number;
-}
-
 export interface DraftParams {
   initial_draft: number;
   final_draft: number;
@@ -34,7 +27,6 @@ export interface DraftParams {
 
 export interface CalculateRequest {
   hull_id: string;
-  reference_points: ReferencePoints;
   draft_params: DraftParams;
   water_density: number;
 }

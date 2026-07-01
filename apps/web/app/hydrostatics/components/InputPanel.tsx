@@ -2,7 +2,6 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { FileUpload } from "./FileUpload";
-import { ReferencePointsForm } from "./ReferencePointsForm";
 import { DraftRangeForm } from "./DraftRangeForm";
 import { useHydrostaticsStore } from "@/lib/store";
 import { calculateHydrostatics, ApiError } from "@/lib/api-client";
@@ -10,7 +9,7 @@ import { Loader2, PlayCircle, AlertTriangle } from "lucide-react";
 
 export function InputPanel() {
   const {
-    hullUpload, referencePoints, draftParams, waterDensity,
+    hullUpload, draftParams, waterDensity,
     setResults, calculateError, setCalculateError,
   } = useHydrostaticsStore();
 
@@ -33,7 +32,6 @@ export function InputPanel() {
     if (!hullUpload) return;
     mutation.mutate({
       hull_id: hullUpload.hull_id,
-      reference_points: referencePoints,
       draft_params: draftParams,
       water_density: waterDensity,
     });
@@ -47,7 +45,6 @@ export function InputPanel() {
       </div>
 
       <FileUpload />
-      <ReferencePointsForm />
       <DraftRangeForm />
 
       <button

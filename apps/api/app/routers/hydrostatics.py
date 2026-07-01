@@ -74,15 +74,16 @@ async def calculate(req: CalculateRequest):
             detail="hull_id not found. Re-upload the .3dm file (server may have restarted).",
         )
 
-    rp = req.reference_points
     dp = req.draft_params
     warnings: list[str] = []
 
-    if rp.baseline_z != 0.0:
-        warnings.append(
-            "baseline_z != 0 was provided, but this MVP does not apply a "
-            "baseline offset correction. Results assume mesh Z=0 = Baseline."
-        )
+    # AP/FP/Midship are derived from the hull's own X bounds rather than
+    # user input — the model's reference axis convention already places
+    # AP and FP at the hull's extreme X coordinates.
+    bounds = hull.bounds
+    ap_x = float(bounds[0][0])
+    fp_x = float(bounds[1][0])
+    midship_x = (ap_x + fp_x) / 2
 
     try:
         results = calculate_hydrostatics_range(
@@ -90,9 +91,9 @@ async def calculate(req: CalculateRequest):
             initial_draft=dp.initial_draft,
             final_draft=dp.final_draft,
             increment=dp.increment,
-            ap_x=rp.ap_x,
-            fp_x=rp.fp_x,
-            midship_x=rp.midship_x,
+            ap_x=ap_x,
+            fp_x=fp_x,
+            midship_x=midship_x,
             density=req.water_density,
         )
     except ValueError as e:
@@ -108,14 +109,14 @@ async def calculate(req: CalculateRequest):
     design_result = None
     if dp.design_draft is not None:
         dr = calculate_hydrostatics_at_draft(
-            hull, dp.design_draft, rp.ap_x, rp.fp_x, rp.midship_x, req.water_density
+            hull, dp.design_draft, ap_x, fp_x, midship_x, req.water_density
         )
         if dr is not None:
             design_result = HydrostaticResultSchema(**dr.to_dict())
         else:
             warnings.append(f"design_draft={dp.design_draft} produced no valid submerged volume.")
 
-    lpp = abs(rp.fp_x - rp.ap_x)
+    lpp = abs(fp_x - ap_x)
 
     return CalculateResponse(
         hull_id=req.hull_id,
