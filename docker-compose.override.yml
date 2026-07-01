@@ -1,0 +1,7 @@
+# Local dev overrides — auto-loaded by `docker compose up` alongside
+# docker-compose.yml. Keep prod/intranet-specific settings out of this file;
+# put those in a docker-compose.prod.yml instead and select it explicitly
+# with `docker compose -f docker-compose.yml -f docker-compose.prod.yml up`.
+services:
+  api:
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
