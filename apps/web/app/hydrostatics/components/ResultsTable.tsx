@@ -46,6 +46,11 @@ export function ResultsTable() {
     );
   }
 
+  const designResult = results.design_draft_result;
+  const rows = designResult
+    ? [...results.results, designResult].sort((a, b) => a.draft - b.draft)
+    : results.results;
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -79,20 +84,32 @@ export function ResultsTable() {
             </tr>
           </thead>
           <tbody>
-            {results.results.map((row, i) => (
-              <tr
-                key={row.draft}
-                className={`font-mono-num ${i % 2 === 0 ? "bg-background" : "bg-muted/40"} ${
-                  row.cp_consistency_flag ? "bg-amber-50" : ""
-                }`}
-              >
-                {COLUMNS.map((c) => (
-                  <td key={c.key} className="whitespace-nowrap px-2 py-1 text-right">
-                    {(row[c.key] as number).toFixed(c.digits)}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {rows.map((row, i) => {
+              const isDesign = row === designResult;
+              return (
+                <tr
+                  key={`${row.draft}-${i}`}
+                  className={`font-mono-num ${
+                    isDesign
+                      ? "bg-blue-50 font-semibold"
+                      : i % 2 === 0
+                        ? "bg-background"
+                        : "bg-muted/40"
+                  } ${row.cp_consistency_flag ? "bg-amber-50" : ""}`}
+                >
+                  {COLUMNS.map((c, ci) => (
+                    <td key={c.key} className="whitespace-nowrap px-2 py-1 text-right">
+                      {ci === 0 && isDesign && (
+                        <span className="mr-1 rounded bg-blue-600 px-1 py-0.5 text-[10px] font-semibold text-white">
+                          DWL
+                        </span>
+                      )}
+                      {(row[c.key] as number).toFixed(c.digits)}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
