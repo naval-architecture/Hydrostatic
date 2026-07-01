@@ -11,6 +11,11 @@ def load_hull_mesh(filepath: str) -> trimesh.Trimesh:
     if model is None:
         raise MeshLoadError(f"Could not read .3dm file at {filepath}")
 
+    # The rest of the app (draft inputs, water density in t/m3, etc.) assumes
+    # meters. Source .3dm files are commonly modeled in millimeters, so
+    # convert using the file's own declared unit system rather than assuming.
+    unit_scale = rhino3dm.UnitSystem.UnitScale(model.Settings.ModelUnitSystem, rhino3dm.UnitSystem.Meters)
+
     all_vertices = []
     all_faces = []
     vertex_offset = 0
@@ -54,8 +59,8 @@ def load_hull_mesh(filepath: str) -> trimesh.Trimesh:
         raise MeshLoadError("No Mesh geometry found. Ensure hull is exported as a Polygon Mesh.")
 
     hull = trimesh.Trimesh(
-        vertices=np.vstack(all_vertices), 
-        faces=np.vstack(all_faces), 
+        vertices=np.vstack(all_vertices) * unit_scale,
+        faces=np.vstack(all_faces),
         process=True
     )
     
