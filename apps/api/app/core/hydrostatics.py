@@ -117,13 +117,16 @@ def calculate_hydrostatics_range(
     fp_x: float,
     midship_x: float,
     density: float,
-) -> list[HydrostaticResult]:
+) -> tuple[list[HydrostaticResult], list[float]]:
     """
     Runs calculate_hydrostatics_at_draft across a draft range
     [initial_draft, final_draft] stepped by `increment` (inclusive of the
     final draft if it lands on the grid, via a small epsilon tolerance).
     Drafts with no valid submerged volume are silently skipped (e.g. a
-    requested initial_draft below the keel).
+    requested initial_draft below the keel). Drafts where the capped
+    submerged mesh isn't watertight (a source mesh gap at that specific
+    waterline) are also skipped rather than failing the whole range --
+    returned separately as `skipped_drafts` so the caller can warn about them.
     """
     if increment <= 0:
         raise ValueError("increment must be > 0")
@@ -134,11 +137,16 @@ def calculate_hydrostatics_range(
     drafts = [initial_draft + i * increment for i in range(n_steps)]
 
     results = []
+    skipped_drafts = []
     for draft in drafts:
-        result = calculate_hydrostatics_at_draft(
-            hull, draft, ap_x, fp_x, midship_x, density
-        )
+        try:
+            result = calculate_hydrostatics_at_draft(
+                hull, draft, ap_x, fp_x, midship_x, density
+            )
+        except ValueError:
+            skipped_drafts.append(draft)
+            continue
         if result is not None:
             results.append(result)
 
-    return results
+    return results, skipped_drafts

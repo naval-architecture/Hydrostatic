@@ -86,7 +86,7 @@ async def calculate(req: CalculateRequest):
     midship_x = (ap_x + fp_x) / 2
 
     try:
-        results = calculate_hydrostatics_range(
+        results, skipped_drafts = calculate_hydrostatics_range(
             hull=hull,
             initial_draft=dp.initial_draft,
             final_draft=dp.final_draft,
@@ -98,6 +98,12 @@ async def calculate(req: CalculateRequest):
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+
+    if skipped_drafts:
+        warnings.append(
+            f"{len(skipped_drafts)} draft(s) skipped due to a source mesh gap "
+            f"at that waterline: {skipped_drafts}"
+        )
 
     if not results:
         raise HTTPException(
