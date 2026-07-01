@@ -29,16 +29,20 @@ def load_hull_mesh(filepath: str) -> trimesh.Trimesh:
 
         # 2. ดึง Faces โดย index เข้าไปใน face object โดยตรง (ไม่ใช้ .A/.B/.C/.D
         #    หรือ .IsQuad/.IsTriangle เพราะไม่มีใน rhino3dm Python bindings)
+        # rhino3dm always returns a length-4 tuple per face, even for
+        # triangles -- the 4th index just repeats the 3rd (e.g. (a,b,c,c)).
+        # So triangle-vs-quad must be detected by comparing face[2]/face[3],
+        # not by len(face), which is always 4.
         faces_list = []
         for face in mesh.Faces:
             print(f"[mesh_loader] face type={type(face)!r} value={face!r}")
-            if len(face) == 4:
+            if face[2] == face[3]:
+                # Triangle (last index repeated)
+                faces_list.append([face[0], face[1], face[2]])
+            else:
                 # Quad: split into two triangles [0,1,2] and [0,2,3]
                 faces_list.append([face[0], face[1], face[2]])
                 faces_list.append([face[0], face[2], face[3]])
-            else:
-                # Triangle
-                faces_list.append([face[0], face[1], face[2]])
 
         faces = np.array(faces_list, dtype=np.int64) + vertex_offset
 
