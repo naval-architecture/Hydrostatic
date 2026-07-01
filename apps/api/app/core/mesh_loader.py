@@ -57,8 +57,9 @@ def load_hull_mesh(filepath: str) -> trimesh.Trimesh:
                 for m in meshes[1:]:
                     merged.Append(m)
                 mesh = merged
-
-        if mesh is None or mesh.Vertices.Count == 0:
+                
+# ใน rhino3dm (Python) ให้ใช้ len(mesh.Vertices) แทน .Count ครับ
+        if mesh is None or len(mesh.Vertices) == 0:
             continue
 
         verts = np.array([[v.X, v.Y, v.Z] for v in mesh.Vertices], dtype=np.float64)
