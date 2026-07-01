@@ -26,19 +26,20 @@ def load_hull_mesh(filepath: str) -> trimesh.Trimesh:
 
         # 1. ดึง Vertices
         verts = np.array([[v.X, v.Y, v.Z] for v in mesh.Vertices], dtype=np.float64)
-        
-        # 2. ดึง Faces ด้วยวิธีที่ถูกต้องสำหรับ rhino3dm Python
+
+        # 2. ดึง Faces โดย index เข้าไปใน face object โดยตรง (ไม่ใช้ .A/.B/.C/.D
+        #    หรือ .IsQuad/.IsTriangle เพราะไม่มีใน rhino3dm Python bindings)
         faces_list = []
         for face in mesh.Faces:
-            # ใช้ attribute .IsQuad ของ face object โดยตรง
-            if face.IsQuad:
-                # Quad มี 4 จุด: A, B, C, D
-                faces_list.append([face.A, face.B, face.C])
-                faces_list.append([face.A, face.C, face.D])
+            print(f"[mesh_loader] face type={type(face)!r} value={face!r}")
+            if len(face) == 4:
+                # Quad: split into two triangles [0,1,2] and [0,2,3]
+                faces_list.append([face[0], face[1], face[2]])
+                faces_list.append([face[0], face[2], face[3]])
             else:
-                # Triangle มี 3 จุด: A, B, C
-                faces_list.append([face.A, face.B, face.C])
-        
+                # Triangle
+                faces_list.append([face[0], face[1], face[2]])
+
         faces = np.array(faces_list, dtype=np.int64) + vertex_offset
 
         all_vertices.append(verts)
