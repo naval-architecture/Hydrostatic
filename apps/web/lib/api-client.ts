@@ -10,12 +10,23 @@ class ApiError extends Error {
   }
 }
 
+function stringifyDetail(detail: unknown): string | undefined {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    // FastAPI validation errors: [{ loc: [...], msg: "...", type: "..." }, ...]
+    return detail
+      .map((e) => (e && typeof e === "object" && "msg" in e ? String((e as { msg: unknown }).msg) : String(e)))
+      .join("; ");
+  }
+  return undefined;
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     let detail = res.statusText;
     try {
       const body = await res.json();
-      detail = body.detail ?? detail;
+      detail = stringifyDetail(body.detail) ?? detail;
     } catch {
       // response wasn't JSON; fall back to statusText
     }
